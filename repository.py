@@ -27,18 +27,6 @@ class RepositorioLivros(ABC):
         ...
 
     @abstractmethod
-    def buscar_por_titulo(self, titulo: str) -> list[Livro]:
-        ...
-
-    @abstractmethod
-    def filtrar_por_autor(self, autor: str) -> list[Livro]:
-        ...
-
-    @abstractmethod
-    def listar_paginado(self, pagina: int, por_pagina: int) -> tuple[list[Livro], int]:
-        ...
-
-    @abstractmethod
     def adicionar(self, dados: LivroCriar) -> Livro:
         ...
 
@@ -69,27 +57,6 @@ class RepositorioEmMemoria(RepositorioLivros):
 
     def buscar_por_id(self, livro_id: int) -> Livro | None:
         return self._livros.get(livro_id)
-
-    def buscar_por_titulo(self, titulo: str) -> list[Livro]:
-        """Retorna livros cujo titulo contenha o termo buscado (case-insensitive)."""
-        termo = titulo.lower()
-        return [l for l in self._livros.values() if termo in l.titulo.lower()]
-
-    def filtrar_por_autor(self, autor: str) -> list[Livro]:
-        """Retorna livros cujo autor contenha o termo buscado (case-insensitive)."""
-        termo = autor.lower()
-        return [l for l in self._livros.values() if termo in l.autor.lower()]
-
-    def listar_paginado(self, pagina: int, por_pagina: int) -> tuple[list[Livro], int]:
-        """
-        Retorna uma fatia da lista de livros e o total de registros.
-        pagina começa em 1.
-        """
-        todos = list(self._livros.values())
-        total = len(todos)
-        inicio = (pagina - 1) * por_pagina
-        fim = inicio + por_pagina
-        return todos[inicio:fim], total
 
     def adicionar(self, dados: LivroCriar) -> Livro:
         novo = Livro(
