@@ -13,7 +13,7 @@ Para rodar:
 Documentacao interativa: http://localhost:8000/docs
 """
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Query, status
 
 from models import Livro, LivroCriar, LivroAtualizar
 from repository import RepositorioEmMemoria, RepositorioLivros
@@ -32,8 +32,14 @@ class ServicoLivros:
     def __init__(self, repositorio: RepositorioLivros) -> None:
         self._repo = repositorio
 
-    def listar(self) -> list[Livro]:
-        return self._repo.listar()
+    def listar(self, titulo: str | None = None) -> list[Livro]:
+        livros = self._repo.listar()
+        if titulo:
+            # Busca parcial e insensivel a maiusculas/minusculas:
+            # "casmurro" encontra "Dom Casmurro".
+            termo = titulo.strip().lower()
+            livros = [livro for livro in livros if termo in livro.titulo.lower()]
+        return livros
 
     def buscar(self, livro_id: int) -> Livro | None:
         return self._repo.buscar_por_id(livro_id)
@@ -64,8 +70,14 @@ servico = ServicoLivros(RepositorioEmMemoria())
 # ----------------------------------------------------------------------
 
 @app.get("/livros", response_model=list[Livro])
-def listar_livros():
-    return servico.listar()
+def listar_livros(
+    titulo: str | None = Query(
+        default=None,
+        description="Filtra livros cujo titulo contem este texto (busca parcial, "
+                    "ignora maiusculas/minusculas).",
+    ),
+):
+    return servico.listar(titulo=titulo)
 
 
 @app.get("/livros/{livro_id}", response_model=Livro)

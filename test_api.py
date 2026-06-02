@@ -83,6 +83,45 @@ def test_buscar_livro_inexistente_retorna_404():
 
 
 # ----------------------------------------------------------------------
+# Busca por titulo (extensao)
+# ----------------------------------------------------------------------
+
+def test_buscar_por_titulo_encontra_correspondencia_parcial():
+    titulo = "O Cortico Unico Para Teste"
+    _criar_livro_exemplo(titulo=titulo, isbn="978-85-000-7777-7")
+
+    resp = client.get("/livros", params={"titulo": "cortico unico"})
+    assert resp.status_code == 200
+    titulos = [livro["titulo"] for livro in resp.json()]
+    assert titulo in titulos
+
+
+def test_buscar_por_titulo_ignora_maiusculas_e_minusculas():
+    titulo = "Sentinela CaseInsensitive XYZ"
+    _criar_livro_exemplo(titulo=titulo, isbn="978-85-000-7778-4")
+
+    resp = client.get("/livros", params={"titulo": "caseinsensitive xyz"})
+    assert resp.status_code == 200
+    titulos = [livro["titulo"] for livro in resp.json()]
+    assert titulo in titulos
+
+
+def test_buscar_por_titulo_sem_correspondencia_retorna_lista_vazia():
+    resp = client.get("/livros", params={"titulo": "titulo-que-nao-existe-zzz-999"})
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_listar_sem_titulo_retorna_todos():
+    _criar_livro_exemplo(titulo="Item Sem Filtro", isbn="978-85-000-7779-1")
+
+    resp = client.get("/livros")
+    assert resp.status_code == 200
+    titulos = [livro["titulo"] for livro in resp.json()]
+    assert "Item Sem Filtro" in titulos
+
+
+# ----------------------------------------------------------------------
 # Update
 # ----------------------------------------------------------------------
 
